@@ -1,19 +1,40 @@
-name: CI
+name: CI/CD Pipeline
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, main ]
   pull_request:
-    branches: [ develop ]
+    branches: [ develop, main ]
 
 jobs:
-  build:
+  build-test:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-      - run: npm install
-      - run: npm test
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Run backend tests
+      run: npm run test-backend
+
+    - name: Run frontend tests
+      run: npm run test-frontend
+
+    - name: Build frontend
+      run: npm run build
+
+    - name: Deploy to staging
+      if: github.ref == 'refs/heads/develop'
+      run: npm run deploy-staging
+
+    - name: Deploy to production
+      if: github.ref == 'refs/heads/main'
+      run: npm run deploy-prod
